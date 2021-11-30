@@ -27,7 +27,7 @@ for i in range(0, len(lcm)):
 browser = webdriver.Firefox()
 #browser.set_context("chrome")
 
-tempo = 1.5
+tempo = 5
 
 empresa_extraida = 0
 
@@ -41,7 +41,7 @@ for empresa in lcm:
 
     browser.get("https://codigopostal.ciberforma.pt/")
 
-    search = browser.find_element_by_xpath("//*[@id='autocomplete-ajax']")
+    search = browser.find_element(By.XPATH, "//*[@id='autocomplete-ajax']")
     search.send_keys(empresa)
     search.send_keys(Keys.RETURN)
 
@@ -51,40 +51,29 @@ for empresa in lcm:
 
     content = browser.page_source
 
-    soup = BeautifulSoup(content)
-
-    # Procurar Erro
-    #empresa_search = soup.find("div", attrs={"class": "gs-snippet"})
-
     # Procurar Pesquisa com Sucesso
-    pesquisa = soup.find("a", attrs={"class": "gs-title"}, href=True)
+    pesquisa = browser.find_element(By.CSS_SELECTOR, "div.gsc-result:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > a:nth-child(1)")
+    browser.execute_script("return arguments[0].scrollIntoView();", pesquisa)
 
     # Se existir empresa em BD
     if pesquisa is not None:
 
         try:
 
+            print(f"Encontramos pesquisa de {empresa} dentro do 'Código Postal'")
+
+            link = pesquisa.get_attribute("href")
+
+            browser.get(link)
+
             time.sleep(tempo)
 
-            element = browser.find_element_by_xpath("/html/body/div[3]/div[2]/div/div/div[1]/div/div/div[2]/div/div/div/div/div[5]/div[2]/div/div/div[1]/div[1]/div[1]/div[1]/div/a")
+            print(f"Entramos na página de {empresa}.")
 
-            #Click on Element
-            actions = webdriver.ActionChains(browser)
-            actions.move_to_element(element)
-            actions.click(element)
-            actions.perform()
 
-            # Entrar na página da empresa dentro do Código Postal
 
-            pesquisa_link = webdriver.current_url
 
-            site = requests.get(pesquisa_link)
 
-            site = site.content.decode('ISO-8859-1')
-
-            soup = BeautifulSoup(site)
-
-            print(f"Entramos na página de {empresa} dentro do 'Código Postal'")
 
             time.sleep(tempo)
 

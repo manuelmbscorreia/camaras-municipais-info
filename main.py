@@ -16,7 +16,7 @@ import urllib3
 import re
 import numpy as np
 
-dfcm = pd.read_csv("listamunicipios.csv")
+dfcm = pd.read_csv("listamunicipios9.csv")
 
 lcm = dfcm["Name of municipality[a]"]
 
@@ -27,11 +27,20 @@ for i in range(0, len(lcm)):
 browser = webdriver.Firefox()
 #browser.set_context("chrome")
 
-tempo = 5
+tempo = 30
 
 empresa_extraida = 0
 
 start = time.time()
+
+#Criação de Listas
+municipio = []
+morada = []
+telefone = []
+email = []
+site = []
+
+
 
 for empresa in lcm:
 
@@ -52,8 +61,12 @@ for empresa in lcm:
     content = browser.page_source
 
     # Procurar Pesquisa com Sucesso
-    pesquisa = browser.find_element(By.CSS_SELECTOR, "div.gsc-result:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > a:nth-child(1)")
-    browser.execute_script("return arguments[0].scrollIntoView();", pesquisa)
+    try:
+        pesquisa = browser.find_element(By.CSS_SELECTOR, "div.gsc-result:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > a:nth-child(1)")
+        browser.execute_script("return arguments[0].scrollIntoView();", pesquisa)
+
+    except:
+        pass
 
     # Se existir empresa em BD
     if pesquisa is not None:
@@ -72,25 +85,32 @@ for empresa in lcm:
 
             elem_nome_municipio = browser.find_element(By.CSS_SELECTOR,"div.Ads-Details:nth-child(6) > div:nth-child(2) > div:nth-child(1) > h2:nth-child(1)")
             browser.execute_script("return arguments[0].scrollIntoView();", elem_nome_municipio)
-            elem_nome_municipio = elem_nome_municipio.get_attribute("h2")
+            elem_nome_municipio = elem_nome_municipio.text
+            municipio.append(elem_nome_municipio)
 
 
             elem_morada = browser.find_element(By.CSS_SELECTOR,"div.Ads-Details:nth-child(6) > div:nth-child(2) > div:nth-child(1) > h4:nth-child(2)")
             browser.execute_script("return arguments[0].scrollIntoView();", elem_morada)
-            elem_morada = elem_morada.get_attribute("h4")
-
+            elem_morada = elem_morada.text
+            morada.append(elem_morada)
 
             elem_telefone = browser.find_element(By.CSS_SELECTOR,"div.Ads-Details:nth-child(6) > div:nth-child(2) > div:nth-child(1) > h4:nth-child(3) > span:nth-child(1)")
             browser.execute_script("return arguments[0].scrollIntoView();", elem_telefone)
-            elem_telefone = elem_telefone.get_attribute("span")
+            elem_telefone = elem_telefone.text
+            telefone.append(elem_telefone)
+
 
             elem_email = browser.find_element(By.CSS_SELECTOR,"div.Ads-Details:nth-child(6) > div:nth-child(2) > div:nth-child(1) > h4:nth-child(5) > span:nth-child(1)")
             browser.execute_script("return arguments[0].scrollIntoView();", elem_email)
-            elem_email = elem_email.get_attribute("span")
+            elem_email = elem_email.text
+            email.append(elem_email)
+
 
             elem_site = browser.find_element(By.CSS_SELECTOR,"div.Ads-Details:nth-child(6) > div:nth-child(2) > div:nth-child(1) > h4:nth-child(6) > span:nth-child(1) > a:nth-child(1)")
             browser.execute_script("return arguments[0].scrollIntoView();", elem_site)
             elem_site = elem_site.get_attribute("href")
+            site.append(elem_site)
+
 
             print(f"Extraimos dados da página de {empresa}.")
 
@@ -99,5 +119,10 @@ for empresa in lcm:
 
         except:
 
-            #print("Pronto já houve um erro")
+            print("Pronto já houve um erro")
 
+zipped = list(zip(municipio, morada, telefone, email, site))
+
+df = pd.DataFrame(zipped, columns=["Municipio", "Morada", "Telefone", "E-mail", "Website"])
+
+df.to_csv("dados_municipios9.csv")
